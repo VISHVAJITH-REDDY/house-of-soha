@@ -1,71 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { serviceNames } from "@/data/services";
-import type { BookingFormData } from "@/lib/validations";
+const WA_PHONE = process.env.NEXT_PUBLIC_WA_PHONE ?? "917842588868";
 
-const today = new Date().toISOString().split("T")[0];
-
-const timeSlots = [
-  { value: "morning", label: "Morning", sub: "10:00 AM – 1:00 PM", emoji: "🌤" },
-  { value: "afternoon", label: "Afternoon", sub: "1:00 PM – 5:00 PM", emoji: "☀️" },
-  { value: "evening", label: "Evening", sub: "5:00 PM – 8:00 PM", emoji: "🌆" },
-];
-
-const initial: BookingFormData = {
-  name: "",
-  phone: "",
-  email: "",
-  service: "",
-  date: "",
-  timeSlot: "morning",
-  notes: "",
-};
+const waUrl = `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(
+  "Hi House of Soha! 🌸 I'd like to book an appointment. Could you please help me with availability?"
+)}`;
 
 export default function BookingSection() {
-  const [form, setForm] = useState<BookingFormData>(initial);
-  const [errors, setErrors] = useState<Partial<Record<keyof BookingFormData, string>>>({});
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-
-  const set = (field: keyof BookingFormData, value: string) => {
-    setForm((f) => ({ ...f, [field]: value }));
-    setErrors((e) => ({ ...e, [field]: "" }));
-  };
-
-  const validate = (): boolean => {
-    const errs: typeof errors = {};
-    if (!form.name.trim() || form.name.length < 2) errs.name = "Name must be at least 2 characters";
-    if (!/^[6-9]\d{9}$/.test(form.phone)) errs.phone = "Enter a valid 10-digit Indian mobile number";
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Invalid email";
-    if (!form.service) errs.service = "Please select a service";
-    if (!form.date) errs.date = "Please select a date";
-    if (!form.timeSlot) errs.timeSlot = "Please select a time preference";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed");
-      setStatus("success");
-      // Open WhatsApp with pre-filled message
-      if (data.whatsappUrl) {
-        setTimeout(() => window.open(data.whatsappUrl, "_blank"), 400);
-      }
-      setForm(initial);
-    } catch {
-      setStatus("error");
-    }
+  const openChat = () => {
+    window.dispatchEvent(new CustomEvent("openChat"));
   };
 
   return (
@@ -76,9 +19,9 @@ export default function BookingSection() {
         padding: "5rem 1.5rem",
       }}
     >
-      <div style={{ maxWidth: "820px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <div style={{ textAlign: "center", marginBottom: "3.5rem" }}>
           <div className="script-accent">Reserve Your Spot</div>
           <div className="gold-divider" style={{ maxWidth: "200px", margin: "0.75rem auto" }}>
             <span style={{ fontSize: "1rem", color: "#c9a96e" }}>✦</span>
@@ -87,267 +30,310 @@ export default function BookingSection() {
             Book an Appointment
           </h2>
           <p className="section-subheading" style={{ maxWidth: "480px", margin: "0 auto" }}>
-            Fill in the form below and we&apos;ll connect with you on WhatsApp to
-            confirm your booking.
+            Choose how you&apos;d like to connect with us — we&apos;re here however works best for you.
           </p>
         </div>
 
-        {status === "success" ? (
-          <SuccessState onReset={() => setStatus("idle")} />
-        ) : (
-          <form
-            onSubmit={handleSubmit}
+        {/* 3 Channel Cards */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
+          {/* Chat */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #590028 0%, #b76e79 100%)",
+              borderRadius: "1.5rem",
+              padding: "2.5rem",
+              color: "#fdf6ee",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.25rem",
+              boxShadow: "0 8px 32px rgba(89,0,40,0.25)",
+            }}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "1rem",
+                background: "rgba(255,255,255,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "2rem",
+              }}
+            >
+              💬
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  color: "rgba(253,246,238,0.6)",
+                  marginBottom: "0.4rem",
+                }}
+              >
+                Instant
+              </div>
+              <h3
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "1.5rem",
+                  margin: "0 0 0.5rem",
+                }}
+              >
+                Chat to Book
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.9rem",
+                  color: "rgba(253,246,238,0.75)",
+                  lineHeight: 1.65,
+                  margin: 0,
+                }}
+              >
+                Chat with our AI assistant — it guides you through services, answers questions, and connects you to WhatsApp to confirm your slot.
+              </p>
+            </div>
+            <button
+              onClick={openChat}
+              style={{
+                marginTop: "auto",
+                background: "rgba(255,255,255,0.2)",
+                border: "1.5px solid rgba(255,255,255,0.3)",
+                borderRadius: "9999px",
+                padding: "0.875rem 1.75rem",
+                color: "#fdf6ee",
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.3)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.2)";
+              }}
+            >
+              💬 Start Chat
+            </button>
+          </div>
+
+          {/* WhatsApp */}
+          <div
             style={{
               background: "#fffaf4",
               borderRadius: "1.5rem",
               padding: "2.5rem",
-              boxShadow: "0 4px 32px rgba(44,26,29,0.1)",
-              border: "1px solid rgba(183,110,121,0.15)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.25rem",
+              boxShadow: "0 4px 32px rgba(44,26,29,0.08)",
+              border: "1px solid rgba(37,211,102,0.2)",
             }}
           >
-            {/* Row 1: Name + Phone */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
-              <FormField label="Your Name *" error={errors.name}>
-                <input
-                  className="input-luxury"
-                  type="text"
-                  placeholder="e.g. Priya Reddy"
-                  value={form.name}
-                  onChange={(e) => set("name", e.target.value)}
-                />
-              </FormField>
-              <FormField label="Phone Number *" error={errors.phone}>
-                <input
-                  className="input-luxury"
-                  type="tel"
-                  placeholder="10-digit mobile number"
-                  value={form.phone}
-                  onChange={(e) => set("phone", e.target.value)}
-                  maxLength={10}
-                />
-              </FormField>
-            </div>
-
-            {/* Row 2: Email + Service */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
-              <FormField label="Email (optional)" error={errors.email}>
-                <input
-                  className="input-luxury"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={form.email}
-                  onChange={(e) => set("email", e.target.value)}
-                />
-              </FormField>
-              <FormField label="Service *" error={errors.service}>
-                <select
-                  className="input-luxury"
-                  value={form.service}
-                  onChange={(e) => set("service", e.target.value)}
-                  style={{ appearance: "none" }}
-                >
-                  <option value="">Select a service...</option>
-                  {serviceNames.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </FormField>
-            </div>
-
-            {/* Date */}
-            <FormField label="Preferred Date *" error={errors.date} style={{ marginBottom: "1.25rem" }}>
-              <input
-                className="input-luxury"
-                type="date"
-                min={today}
-                value={form.date}
-                onChange={(e) => set("date", e.target.value)}
-              />
-            </FormField>
-
-            {/* Time slot */}
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  color: "#2c1a1d",
-                  marginBottom: "0.6rem",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                Preferred Time *
-              </label>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.75rem" }}>
-                {timeSlots.map((slot) => (
-                  <button
-                    key={slot.value}
-                    type="button"
-                    onClick={() => set("timeSlot", slot.value)}
-                    style={{
-                      padding: "1rem 0.75rem",
-                      borderRadius: "0.875rem",
-                      border: `2px solid ${form.timeSlot === slot.value ? "#b76e79" : "rgba(183,110,121,0.2)"}`,
-                      background: form.timeSlot === slot.value ? "rgba(183,110,121,0.1)" : "#fffaf4",
-                      cursor: "pointer",
-                      textAlign: "center",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <div style={{ fontSize: "1.25rem", marginBottom: "0.25rem" }}>{slot.emoji}</div>
-                    <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#2c1a1d" }}>{slot.label}</div>
-                    <div style={{ fontSize: "0.7rem", color: "#9e7b82" }}>{slot.sub}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Notes */}
-            <FormField label="Notes (optional)" style={{ marginBottom: "2rem" }}>
-              <textarea
-                className="input-luxury"
-                placeholder="Any specific requirements, preferences, or questions..."
-                rows={3}
-                value={form.notes}
-                onChange={(e) => set("notes", e.target.value)}
-                style={{ resize: "vertical" }}
-              />
-            </FormField>
-
-            {status === "error" && (
-              <div
-                style={{
-                  background: "#fff0f3",
-                  border: "1px solid #ffb3c1",
-                  borderRadius: "0.75rem",
-                  padding: "0.875rem 1rem",
-                  fontSize: "0.875rem",
-                  color: "#c1121f",
-                  marginBottom: "1.25rem",
-                }}
-              >
-                Something went wrong. Please try again or call us directly.
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              className="btn-primary"
-              style={{ width: "100%", fontSize: "1rem", padding: "1.1rem" }}
-            >
-              {status === "loading" ? (
-                <>⏳ Submitting...</>
-              ) : (
-                <>💬 Confirm on WhatsApp</>
-              )}
-            </button>
-
-            <p
+            <div
               style={{
-                textAlign: "center",
-                fontSize: "0.8rem",
-                color: "#9e7b82",
-                marginTop: "1rem",
+                width: "64px",
+                height: "64px",
+                borderRadius: "1rem",
+                background: "rgba(37,211,102,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "2rem",
               }}
             >
-              After submitting, WhatsApp will open with your booking details.
-              Our team confirms within 30 minutes (10am–8pm).
-            </p>
-          </form>
-        )}
+              💚
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  color: "#25D366",
+                  fontWeight: 600,
+                  marginBottom: "0.4rem",
+                }}
+              >
+                Responds in 30 mins
+              </div>
+              <h3
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "1.5rem",
+                  color: "#2c1a1d",
+                  margin: "0 0 0.5rem",
+                }}
+              >
+                Book via WhatsApp
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.9rem",
+                  color: "#6b4c52",
+                  lineHeight: 1.65,
+                  margin: 0,
+                }}
+              >
+                Message us directly on WhatsApp. Tell us what you&apos;re looking for and our team will suggest the best date and time for you.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.85rem", color: "#6b4c52" }}>
+              <div>📞 Makeup: +91 78425 88868</div>
+              <div>📞 Salon: +91 91116 11171</div>
+              <div>🕐 Mon–Sun: 11AM – 8PM</div>
+            </div>
+            <a
+              href={waUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                marginTop: "auto",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+                background: "#25D366",
+                border: "none",
+                borderRadius: "9999px",
+                padding: "0.875rem 1.75rem",
+                color: "#fff",
+                fontFamily: "'DM Sans', sans-serif",
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                cursor: "pointer",
+                textDecoration: "none",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#1ebe5b";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#25D366";
+              }}
+            >
+              💚 Open WhatsApp
+            </a>
+          </div>
+
+          {/* Call */}
+          <div
+            style={{
+              background: "#fffaf4",
+              borderRadius: "1.5rem",
+              padding: "2.5rem",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.25rem",
+              boxShadow: "0 4px 32px rgba(44,26,29,0.08)",
+              border: "1px solid rgba(201,169,110,0.2)",
+            }}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "1rem",
+                background: "rgba(201,169,110,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "2rem",
+              }}
+            >
+              📞
+            </div>
+            <div>
+              <div
+                style={{
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  color: "#c9a96e",
+                  fontWeight: 600,
+                  marginBottom: "0.4rem",
+                }}
+              >
+                Speak Directly
+              </div>
+              <h3
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: "1.5rem",
+                  color: "#2c1a1d",
+                  margin: "0 0 0.5rem",
+                }}
+              >
+                Call to Book
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.9rem",
+                  color: "#6b4c52",
+                  lineHeight: 1.65,
+                  margin: 0,
+                }}
+              >
+                Prefer to talk? Call us directly and our team will book your appointment right away. Our AI receptionist is available 24/7.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              {[
+                { label: "Makeup Enquiries", number: "+91 78425 88868", href: "tel:+917842588868" },
+                { label: "Salon Services", number: "+91 91116 11171", href: "tel:+919111611171" },
+                { label: "General", number: "+91 99896 71456", href: "tel:+919989671456" },
+              ].map((c) => (
+                <a
+                  key={c.href}
+                  href={c.href}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    background: "rgba(201,169,110,0.08)",
+                    border: "1px solid rgba(201,169,110,0.2)",
+                    borderRadius: "0.75rem",
+                    padding: "0.65rem 1rem",
+                    textDecoration: "none",
+                    transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "rgba(201,169,110,0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "rgba(201,169,110,0.08)";
+                  }}
+                >
+                  <span style={{ fontSize: "0.78rem", color: "#9e7b82" }}>{c.label}</span>
+                  <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#2c1a1d" }}>{c.number}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <style>{`
-        @media (max-width: 600px) {
-          #booking form > div:first-of-type,
-          #booking form > div:nth-of-type(2) {
+        @media (max-width: 640px) {
+          #booking > div > div:last-child {
             grid-template-columns: 1fr !important;
           }
         }
       `}</style>
     </section>
-  );
-}
-
-function FormField({
-  label,
-  children,
-  error,
-  style,
-}: {
-  label?: string;
-  children: React.ReactNode;
-  error?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <div style={style}>
-      {label && (
-        <label
-          style={{
-            display: "block",
-            fontFamily: "'DM Sans', sans-serif",
-            fontWeight: 600,
-            fontSize: "0.875rem",
-            color: "#2c1a1d",
-            marginBottom: "0.5rem",
-            letterSpacing: "0.02em",
-          }}
-        >
-          {label}
-        </label>
-      )}
-      {children}
-      {error && (
-        <p style={{ fontSize: "0.78rem", color: "#c1121f", marginTop: "0.3rem" }}>
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function SuccessState({ onReset }: { onReset: () => void }) {
-  return (
-    <div
-      style={{
-        background: "#fffaf4",
-        borderRadius: "1.5rem",
-        padding: "3rem 2.5rem",
-        textAlign: "center",
-        boxShadow: "0 4px 32px rgba(44,26,29,0.1)",
-        border: "1px solid rgba(183,110,121,0.2)",
-      }}
-    >
-      <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🌸</div>
-      <h3
-        style={{
-          fontFamily: "'Playfair Display', serif",
-          fontSize: "1.75rem",
-          color: "#2c1a1d",
-          marginBottom: "0.75rem",
-        }}
-      >
-        Booking Request Sent!
-      </h3>
-      <p
-        style={{
-          color: "#6b4c52",
-          lineHeight: 1.7,
-          marginBottom: "1.75rem",
-          maxWidth: "400px",
-          margin: "0 auto 1.75rem",
-        }}
-      >
-        WhatsApp should have opened with your booking details. Our team will
-        confirm your appointment within 30 minutes during business hours.
-      </p>
-      <button onClick={onReset} className="btn-rose-outline">
-        Book Another Appointment
-      </button>
-    </div>
   );
 }

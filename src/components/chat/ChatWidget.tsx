@@ -43,6 +43,16 @@ export default function ChatWidget() {
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Listen for openChat event from BookingSection
+  useEffect(() => {
+    const handler = () => {
+      setOpen(true);
+      setHasNotif(false);
+    };
+    window.addEventListener("openChat", handler);
+    return () => window.removeEventListener("openChat", handler);
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -85,12 +95,7 @@ export default function ChatWidget() {
         }
 
         if (node.isLeaf && node.leafAction === "scroll-form") {
-          setTimeout(() => {
-            document
-              .querySelector("#booking")
-              ?.scrollIntoView({ behavior: "smooth" });
-            setOpen(false);
-          }, 1200);
+          setTimeout(() => setOpen(false), 1200);
         }
       }, 800);
     };

@@ -122,7 +122,7 @@ export const chatNodes: Record<string, ChatNode> = {
       "Perfect! I'll open WhatsApp right now so our team can confirm your date and time. They usually respond within 30 minutes (10am–8pm). 🌸",
     quickReplies: [
       { label: "Open WhatsApp 💬", value: "wa", nextId: "wa_sent" },
-      { label: "Fill detailed form instead", value: "form", nextId: "go_to_form" },
+      { label: "Call instead 📞", value: "call", nextId: "call_info" },
     ],
   },
 
@@ -134,12 +134,14 @@ export const chatNodes: Record<string, ChatNode> = {
     leafAction: "whatsapp",
   },
 
-  go_to_form: {
-    id: "go_to_form",
+  call_info: {
+    id: "call_info",
     message:
-      "Sure! I'll scroll you down to our booking form where you can fill in all the details. See you there! 📝",
-    isLeaf: true,
-    leafAction: "scroll-form",
+      "Of course! You can reach us on:\n\n📞 Makeup: +91 78425 88868\n📞 Salon: +91 91116 11171\n📞 General: +91 99896 71456\n\n🕐 Mon–Sun: 11AM – 8PM\n\nOur AI receptionist answers 24/7 too! 🤖",
+    quickReplies: [
+      { label: "Open WhatsApp instead 💬", value: "wa", nextId: "wa_sent" },
+      { label: "Back to start ←", value: "back", nextId: "start" },
+    ],
   },
 
   services_info: {
