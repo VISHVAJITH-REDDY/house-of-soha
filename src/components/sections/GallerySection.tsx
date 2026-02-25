@@ -1,40 +1,37 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-declare global {
-  interface Window {
-    instgrm?: { Embeds: { process: () => void } };
-  }
+interface BeholdPost {
+  id: string;
+  mediaType: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
+  mediaUrl: string;
+  thumbnailUrl?: string;
+  permalink: string;
+  caption?: string;
+  timestamp: string;
 }
 
-// Reels only — using /reel/ URLs with utm params for proper embed rendering
-const posts = [
-  "https://www.instagram.com/reel/DUvGHwrgc4I/?utm_source=ig_embed&utm_campaign=loading",
-  "https://www.instagram.com/reel/DOyz8FXyyM7/?utm_source=ig_embed&utm_campaign=loading",
-  "https://www.instagram.com/reel/DVK2PtxgZS_/?utm_source=ig_embed&utm_campaign=loading",
-  "https://www.instagram.com/reel/DVIz0xWgUg5/?utm_source=ig_embed&utm_campaign=loading",
-  "https://www.instagram.com/reel/DVFtwyXAe7X/?utm_source=ig_embed&utm_campaign=loading",
-  "https://www.instagram.com/reel/DVK4gKLmfuG/?utm_source=ig_embed&utm_campaign=loading",
-  "https://www.instagram.com/reel/DVDI0xbkYEh/?utm_source=ig_embed&utm_campaign=loading",
-];
-
-// Instagram embed header height ~88px, footer ~154px
-const HEADER_H = 88;
-const FOOTER_H = 154;
-const COVER = "#fff";
+const FEED_ID = process.env.NEXT_PUBLIC_BEHOLD_FEED_ID ?? "";
 
 export default function GallerySection() {
+  const [posts, setPosts] = useState<BeholdPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    if (window.instgrm) {
-      window.instgrm.Embeds.process();
+    if (!FEED_ID) {
+      setLoading(false);
       return;
     }
-    const script = document.createElement("script");
-    script.src = "https://www.instagram.com/embed.js";
-    script.async = true;
-    script.onload = () => window.instgrm?.Embeds.process();
-    document.body.appendChild(script);
+    fetch(`https://feeds.behold.so/${FEED_ID}`)
+      .then((r) => r.json())
+      .then((data: BeholdPost[]) => {
+        // Show only videos/reels
+        const videos = data.filter((p) => p.mediaType === "VIDEO");
+        setPosts(videos.slice(0, 9));
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -64,75 +61,107 @@ export default function GallerySection() {
           </a>
         </div>
 
-        {/* Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "1.25rem",
-            alignItems: "start",
-          }}
-        >
-          {posts.map((url) => (
-            <div
-              key={url}
-              style={{
-                position: "relative",
-                borderRadius: "1rem",
-                overflow: "hidden",
-                background: COVER,
-                boxShadow: "0 2px 20px rgba(44,26,29,0.1)",
-              }}
-            >
-              {/* Overlay: hides Instagram profile header */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: `${HEADER_H}px`,
-                  background: COVER,
-                  zIndex: 10,
-                  pointerEvents: "none",
-                  borderRadius: "1rem 1rem 0 0",
-                }}
-              />
+        {/* Loading */}
+        {loading && (
+          <div style={{ textAlign: "center", padding: "3rem", color: "#b76e79" }}>
+            Loading gallery…
+          </div>
+        )}
 
-              <blockquote
-                className="instagram-media"
-                data-instgrm-permalink={url}
-                data-instgrm-version="14"
-                style={{
-                  background: "#FFF",
-                  border: "0",
-                  borderRadius: "3px",
-                  boxShadow: "none",
-                  margin: "1px",
-                  maxWidth: "540px",
-                  minWidth: "326px",
-                  padding: "0",
-                  width: "calc(100% - 2px)",
-                }}
-              />
+        {/* No feed ID configured */}
+        {!loading && !FEED_ID && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "2rem",
+              color: "#9e7b82",
+              background: "#fff",
+              borderRadius: "1rem",
+              fontSize: "0.9rem",
+            }}
+          >
+            Add <code>NEXT_PUBLIC_BEHOLD_FEED_ID</code> to your environment variables to show the Instagram feed.
+          </div>
+        )}
 
-              {/* Overlay: hides "View more on Instagram" + likes + comment bar */}
-              <div
+        {/* Video grid */}
+        {!loading && posts.length > 0 && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "1.25rem",
+              alignItems: "start",
+            }}
+          >
+            {posts.map((post) => (
+              <a
+                key={post.id}
+                href={post.permalink}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: `${FOOTER_H}px`,
-                  background: COVER,
-                  zIndex: 10,
-                  pointerEvents: "none",
-                  borderRadius: "0 0 1rem 1rem",
+                  display: "block",
+                  borderRadius: "1rem",
+                  overflow: "hidden",
+                  boxShadow: "0 2px 20px rgba(44,26,29,0.1)",
+                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  position: "relative",
+                  background: "#000",
                 }}
-              />
-            </div>
-          ))}
-        </div>
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "scale(1.02)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 32px rgba(44,26,29,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 20px rgba(44,26,29,0.1)";
+                }}
+              >
+                {/* Thumbnail */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={post.thumbnailUrl ?? post.mediaUrl}
+                  alt={post.caption?.slice(0, 80) ?? "House of Soha"}
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    display: "block",
+                    objectFit: "cover",
+                  }}
+                  loading="lazy"
+                />
+                {/* Play icon overlay */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(0,0,0,0.15)",
+                    transition: "background 0.2s",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "52px",
+                      height: "52px",
+                      borderRadius: "50%",
+                      background: "rgba(255,255,255,0.85)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1.25rem",
+                    }}
+                  >
+                    ▶
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
       </div>
 
       <style>{`
