@@ -8,19 +8,15 @@ declare global {
   }
 }
 
+// Videos only
 const posts = [
-  "https://www.instagram.com/p/DUvot_lCX6z/",
-  "https://www.instagram.com/p/DUvGHwrgc4I/",
-  "https://www.instagram.com/p/DOyz8FXyyM7/",
-  "https://www.instagram.com/p/DVK2PtxgZS_/",
-  "https://www.instagram.com/p/DVJX4JJCTyx/",
-  "https://www.instagram.com/p/DVJQfo5kSw0/",
-  "https://www.instagram.com/p/DVIz0xWgUg5/",
-  "https://www.instagram.com/p/DVFtwyXAe7X/",
-  "https://www.instagram.com/p/DVK4gKLmfuG/",
-  "https://www.instagram.com/p/DVDdd-nkpZS/",
-  "https://www.instagram.com/p/DVDI0xbkYEh/",
-  "https://www.instagram.com/p/DU-ifqpCBpN/",
+  "https://www.instagram.com/p/DUvGHwrgc4I/",  // 2
+  "https://www.instagram.com/p/DOyz8FXyyM7/",  // 3
+  "https://www.instagram.com/p/DVK2PtxgZS_/",  // 4
+  "https://www.instagram.com/p/DVIz0xWgUg5/",  // 7
+  "https://www.instagram.com/p/DVFtwyXAe7X/",  // 8
+  "https://www.instagram.com/p/DVK4gKLmfuG/",  // 9
+  "https://www.instagram.com/p/DVDI0xbkYEh/",  // 11
 ];
 
 // Instagram embed header height ~88px, footer ~154px
