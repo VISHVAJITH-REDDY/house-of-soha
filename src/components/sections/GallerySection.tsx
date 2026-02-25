@@ -8,15 +8,15 @@ declare global {
   }
 }
 
-// Videos only
+// Reels only — using /reel/ URLs with utm params for proper embed rendering
 const posts = [
-  "https://www.instagram.com/p/DUvGHwrgc4I/",  // 2
-  "https://www.instagram.com/p/DOyz8FXyyM7/",  // 3
-  "https://www.instagram.com/p/DVK2PtxgZS_/",  // 4
-  "https://www.instagram.com/p/DVIz0xWgUg5/",  // 7
-  "https://www.instagram.com/p/DVFtwyXAe7X/",  // 8
-  "https://www.instagram.com/p/DVK4gKLmfuG/",  // 9
-  "https://www.instagram.com/p/DVDI0xbkYEh/",  // 11
+  "https://www.instagram.com/reel/DUvGHwrgc4I/?utm_source=ig_embed&utm_campaign=loading",
+  "https://www.instagram.com/reel/DOyz8FXyyM7/?utm_source=ig_embed&utm_campaign=loading",
+  "https://www.instagram.com/reel/DVK2PtxgZS_/?utm_source=ig_embed&utm_campaign=loading",
+  "https://www.instagram.com/reel/DVIz0xWgUg5/?utm_source=ig_embed&utm_campaign=loading",
+  "https://www.instagram.com/reel/DVFtwyXAe7X/?utm_source=ig_embed&utm_campaign=loading",
+  "https://www.instagram.com/reel/DVK4gKLmfuG/?utm_source=ig_embed&utm_campaign=loading",
+  "https://www.instagram.com/reel/DVDI0xbkYEh/?utm_source=ig_embed&utm_campaign=loading",
 ];
 
 // Instagram embed header height ~88px, footer ~154px
@@ -104,14 +104,15 @@ export default function GallerySection() {
                 data-instgrm-permalink={url}
                 data-instgrm-version="14"
                 style={{
-                  background: COVER,
+                  background: "#FFF",
                   border: "0",
-                  borderRadius: "0",
-                  margin: "0 auto",
-                  maxWidth: "100%",
-                  minWidth: "300px",
+                  borderRadius: "3px",
+                  boxShadow: "none",
+                  margin: "1px",
+                  maxWidth: "540px",
+                  minWidth: "326px",
                   padding: "0",
-                  width: "100%",
+                  width: "calc(100% - 2px)",
                 }}
               />
 
