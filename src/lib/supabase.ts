@@ -1,14 +1,43 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+// Lazy singletons — created on first use, not at module load time.
+// This prevents build-time crashes when env vars are absent.
 
-// Public client (for frontend reads)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+let _supabase: SupabaseClient | null = null;
+let _supabaseAdmin: SupabaseClient | null = null;
 
-// Service client (for server-side writes — bypasses RLS)
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) throw new Error("Supabase public env vars missing");
+    _supabase = createClient(url, key);
+  }
+  return _supabase;
+}
+
+export function getSupabaseAdmin(): SupabaseClient {
+  if (!_supabaseAdmin) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY;
+    if (!url || !key) throw new Error("Supabase service env vars missing");
+    _supabaseAdmin = createClient(url, key);
+  }
+  return _supabaseAdmin;
+}
+
+// Named exports for backwards compat — these are still lazy getters
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    return (getSupabase() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
+
+export const supabaseAdmin = new Proxy({} as SupabaseClient, {
+  get(_, prop) {
+    return (getSupabaseAdmin() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
 
 export type BookingSource = "chat" | "whatsapp" | "voice";
 export type BookingStatus = "pending" | "confirmed" | "cancelled";
