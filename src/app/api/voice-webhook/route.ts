@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { buildWhatsAppUrl } from "@/lib/whatsapp";
 
 // Vapi.ai sends a POST webhook when a call ends.
@@ -48,41 +47,19 @@ export async function POST(req: NextRequest) {
 
     const structured = payload.analysis?.structuredData;
 
-    // Save whatever we got from the call
-    const booking = await prisma.booking.create({
-      data: {
-        name: structured?.name ?? "Voice Caller",
-        phone:
-          structured?.phone ??
-          payload.call?.phoneNumber?.number ??
-          "Not provided",
-        service: structured?.service ?? "Not specified",
-        date: structured?.date ?? "To be confirmed",
-        timeSlot: structured?.timeSlot ?? "To be confirmed",
-        notes: structured?.notes ?? payload.analysis?.summary ?? null,
-        source: "voice",
-        status: "PENDING",
-      },
-    });
+    const name = structured?.name ?? "Voice Caller";
+    const phone = structured?.phone ?? payload.call?.phoneNumber?.number ?? "Not provided";
+    const service = structured?.service ?? "Not specified";
+    const date = structured?.date ?? "To be confirmed";
+    const timeSlot = structured?.timeSlot ?? "To be confirmed";
+    const notes = structured?.notes ?? payload.analysis?.summary ?? undefined;
 
     // Build WhatsApp notification URL for the salon team
-    const waUrl = buildWhatsAppUrl({
-      name: booking.name,
-      phone: booking.phone,
-      service: booking.service,
-      date: booking.date,
-      timeSlot: booking.timeSlot,
-      notes: booking.notes ?? undefined,
-      source: "voice",
-    });
+    const waUrl = buildWhatsAppUrl({ name, phone, service, date, timeSlot, notes, source: "voice" });
 
-    console.log(`[Voice Booking] ID ${booking.id} saved. WA: ${waUrl}`);
+    console.log(`[Voice Booking] received. WA: ${waUrl}`);
 
-    return NextResponse.json({
-      success: true,
-      bookingId: booking.id,
-      whatsappUrl: waUrl,
-    });
+    return NextResponse.json({ success: true, whatsappUrl: waUrl });
   } catch (err) {
     console.error("Voice webhook error:", err);
     return NextResponse.json(
