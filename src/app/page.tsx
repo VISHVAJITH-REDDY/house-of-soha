@@ -8,8 +8,6 @@ import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import BookingSection from "@/components/sections/BookingSection";
 import FAQSection from "@/components/sections/FAQSection";
 import ContactSection from "@/components/sections/ContactSection";
-import ChatWidget from "@/components/chat/ChatWidget";
-
 export default function Home() {
   return (
     <>
@@ -25,7 +23,6 @@ export default function Home() {
         <ContactSection />
       </main>
       <Footer />
-      <ChatWidget />
     </>
   );
 }
