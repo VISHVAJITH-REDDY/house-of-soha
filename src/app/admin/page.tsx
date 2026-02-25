@@ -29,6 +29,7 @@ export default function AdminPage() {
   const [filter, setFilter] = useState<"all" | "chat" | "whatsapp" | "voice">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "cancelled">("all");
   const [updating, setUpdating] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const login = () => {
     if (password === ADMIN_PASS) setAuthed(true);
@@ -37,10 +38,23 @@ export default function AdminPage() {
 
   const fetchBookings = async () => {
     setLoading(true);
-    const res = await fetch("/api/admin/bookings");
-    const data = await res.json();
-    setBookings(data.bookings ?? []);
-    setLoading(false);
+    setFetchError(null);
+    try {
+      const res = await fetch("/api/admin/bookings");
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = {}; }
+      if (!res.ok) {
+        setFetchError(data.error ?? `Server error ${res.status}`);
+        setBookings([]);
+      } else {
+        setBookings(data.bookings ?? []);
+      }
+    } catch (e) {
+      setFetchError(e instanceof Error ? e.message : "Network error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -151,6 +165,10 @@ export default function AdminPage() {
         {/* Table */}
         {loading ? (
           <div style={{ textAlign: "center", padding: "3rem", color: "#b76e79" }}>Loading bookings…</div>
+        ) : fetchError ? (
+          <div style={{ textAlign: "center", padding: "3rem", color: "#ef4444", background: "#fff", borderRadius: "1rem", fontFamily: "monospace", fontSize: "0.85rem" }}>
+            ❌ {fetchError}
+          </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "3rem", color: "#9e7b82", background: "#fff", borderRadius: "1rem" }}>No bookings found.</div>
         ) : (
